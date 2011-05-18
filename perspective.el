@@ -110,6 +110,7 @@ Run with the activated perspective active.")
 (define-key persp-mode-map (kbd "C-x x") perspective-map)
 
 (define-key persp-mode-map (kbd "C-x x s") 'persp-switch)
+(define-key persp-mode-map (kbd "C-x x n") 'persp-new)
 (define-key persp-mode-map (kbd "C-x x k") 'persp-remove-buffer)
 (define-key persp-mode-map (kbd "C-x x c") 'persp-kill)
 (define-key persp-mode-map (kbd "C-x x r") 'persp-rename)
@@ -273,6 +274,7 @@ Excludes NOT-FRAME, if given."
   "Return a new perspective with name NAME.
 The new perspective will start with only an `initial-major-mode'
 buffer called \"*scratch* (NAME)\"."
+  (interactive "sNew Perspective Name: ")
   (make-persp :name name
     (switch-to-buffer (concat "*scratch* (" name ")"))
     (funcall initial-major-mode)
@@ -356,21 +358,20 @@ This is used for cycling between perspectives."
 
 (defun persp-switch (name)
   "Switch to the perspective given by NAME.
-If it doesn't exist, create a new perspective and switch to that.
 
-Switching to a perspective means that all buffers associated with
-that perspective are reactivated (see `persp-reactivate-buffers'),
-the perspective's window configuration is restored, and the
-perspective's local variables are set."
+  Switching to a perspective means that all buffers associated with
+  that perspective are reactivated (see `persp-reactivate-buffers'),
+  the perspective's window configuration is restored, and the
+  perspective's local variables are set."
   (interactive "i")
-  (if (null name) (setq name (persp-prompt (and persp-last (persp-name persp-last)))))
-  (if (and persp-curr (equal name (persp-name persp-curr))) name
-    (let ((persp (gethash name perspectives-hash)))
-      (setq persp-last persp-curr)
-      (when (null persp)
-        (setq persp (persp-new name)))
-      (persp-activate persp)
-      name)))
+  (let ((name (or name (persp-prompt (and persp-last
+                                          (persp-name persp-last)) t))))
+    (if (and persp-curr (equal name (persp-name persp-curr)))
+        name
+      (let ((persp (gethash name perspectives-hash)))
+        (setq persp-last persp-curr)
+        (persp-activate persp)
+        name))))
 
 (defun persp-activate (persp)
   "Activate the perspective given by the persp struct PERSP."
@@ -391,7 +392,8 @@ Sets `this-command' (and thus `last-command') to (persp-switch-quick . CHAR).
 
 See `persp-switch', `persp-get-quick'."
   (interactive "c")
-  (let ((persp (if (and (consp last-command) (eq (car last-command) this-command))
+  (let ((persp (if (and (consp last-command)
+                        (eq (car last-command) this-command))
                    (persp-get-quick char (cdr last-command))
                  (persp-get-quick char))))
     (setq this-command (cons this-command persp))
