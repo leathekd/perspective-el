@@ -425,8 +425,9 @@ See also `persp-switch' and `persp-remove-buffer'."
     (let ((read-buffer-function nil))
       (read-buffer "Add buffer to perspective: "))))
   (let ((buffer (get-buffer buffer)))
-    (unless (memq buffer (persp-buffers persp-curr))
-      (push buffer (persp-buffers persp-curr)))))
+    (when (memq buffer (persp-buffers persp-curr))
+      (delq buffer (persp-buffers persp-curr)))
+    (push buffer (persp-buffers persp-curr))))
 
 (defun* persp-buffer-in-other-p (buffer)
   "Returns nil if BUFFER is only in the current perspective.
