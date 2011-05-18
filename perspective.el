@@ -245,14 +245,17 @@ Excludes NOT-FRAME, if given."
 (defun persp-prompt (&optional default require-match)
   "Prompt for the name of a perspective.
 
-DEFAULT is a default value for the prompt.
+  DEFAULT is a default value for the prompt.
 
-REQUIRE-MATCH can take the same values as in `completing-read'."
-  (completing-read (concat "Perspective name"
-                           (if default (concat " (default " default ")") "")
-                           ": ")
-                   (persp-names)
-                   nil require-match nil nil default))
+  REQUIRE-MATCH can take the same values as in `completing-read'."
+  (let ((read-fn (if (featurep 'ido) 'ido-completing-read 'completing-read))
+        (persp-names (if (featurep 'ido)
+                         (delq (persp-name persp-curr) (persp-names))
+                       (persp-names))))
+    (funcall read-fn
+             (concat "Perspective name"
+                     (if default (concat " (default " default ")") "") ": ")
+             persp-names nil require-match nil nil default)))
 
 (defmacro with-perspective (name &rest body)
   "Switch to the perspective given by NAME while evaluating BODY."
