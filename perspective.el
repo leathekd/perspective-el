@@ -685,9 +685,11 @@ it. In addition, if one exists already, runs BODY in it immediately."
        (with-perspective ,name ,@body))))
 
 (defun persp-set-ido-buffers ()
-  (setq ido-temp-list
-        (let ((names (remq nil (mapcar 'buffer-name (persp-buffers persp-curr)))))
-          (or (remove-if (lambda (name) (eq (string-to-char name) ? )) names) names))))
+  (let* ((names (remq nil (mapcar 'buffer-name (persp-buffers persp-curr))))
+         (bufs (or (remove-if (lambda (n) (eq (string-to-char n) ? )) names)
+                   names)))
+    (setq ido-temp-list
+          (remove-if-not (lambda (x) (member x bufs)) ido-temp-list))))
 
 (defun quick-perspective-keys ()
   "Bind quick key commands to switch to perspectives.
